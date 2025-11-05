@@ -1,0 +1,150 @@
+# @package model
+
+# Default model configuration for GP2Vec
+
+# Model architecture
+architecture: "gp2vec"  # Model type identifier
+input_channels: 3  # Number of input channels (Z, N, E)
+
+# Feature Encoder (CNN)
+feature_encoder:
+  # Convolutional layers
+  conv_layers:
+    - channels: 64
+      kernel_size: 10
+      stride: 5
+    - channels: 128  
+      kernel_size: 8
+      stride: 4
+    - channels: 256
+      kernel_size: 4
+      stride: 2
+    - channels: 512
+      kernel_size: 4
+      stride: 2
+    - channels: 768
+      kernel_size: 4
+      stride: 2
+  
+  # Layer configuration
+  dropout: 0.1
+  activation: "gelu"  # gelu, relu, swish
+  layer_norm: true
+  
+  # Normalization
+  feature_grad_mult: 1.0  # gradient multiplier for feature encoder
+
+# Vector Quantization
+quantizer:
+  type: "gumbel"  # "gumbel" or "ema"
+  
+  # Codebook parameters
+  num_codebooks: 2
+  codebook_size: 320
+  codebook_dim: 768
+  
+  # Gumbel-specific parameters (used if type == "gumbel")
+  gumbel:
+    temperature: 2.0
+    min_temperature: 0.5
+    anneal_rate: 0.999995
+    hard: true
+  
+  # EMA-specific parameters (used if type == "ema")
+  ema:
+    decay: 0.99
+    epsilon: 1e-5
+    restart_unused_codes: true
+
+# Context Encoder (Transformer)
+context_encoder:
+  # Transformer architecture
+  embed_dim: 768
+  num_heads: 12
+  num_layers: 12
+  
+  # MLP configuration
+  mlp_ratio: 4.0  # hidden_dim = embed_dim * mlp_ratio
+  dropout: 0.1
+  attention_dropout: 0.1
+  
+  # Positional encoding
+  max_positions: 512
+  learned_pos: true  # learned vs sinusoidal
+  
+  # Layer configuration
+  layer_norm_first: false  # pre or post layer norm
+  activation: "gelu"
+
+# Metadata Conditioning
+metadata_encoder:
+  enabled: true
+  
+  # Input features
+  coordinate_dim: 3  # lat, lon, elevation
+  temporal_dim: 4  # hour, day, month, season
+  instrument_vocab_size: 100  # number of unique instruments
+  
+  # Architecture
+  embed_dim: 256
+  num_layers: 2
+  dropout: 0.1
+  
+  # Fusion method
+  fusion_method: "cross_attention"  # "concat", "add", "cross_attention"
+  fusion_layers: [6, 9]  # which transformer layers to fuse at
+
+# Loss Configuration  
+loss:
+  type: "infonce"  # contrastive loss type
+  
+  # Masking strategy
+  mask_prob: 0.065  # probability of masking a time step
+  mask_length: 10  # number of consecutive time steps to mask
+  min_masks: 2  # minimum number of masks per sequence
+  
+  # Contrastive learning
+  temperature: 0.1
+  num_negatives: 100
+  negative_selection: "random"  # "random" or "hard"
+  
+  # Loss weighting
+  contrastive_weight: 1.0
+  diversity_weight: 0.1  # codebook diversity loss
+  commitment_weight: 0.25  # VQ commitment loss (for EMA)
+
+# Model initialization
+init:
+  # Weight initialization
+  conv_std: 0.02
+  linear_std: 0.02
+  embed_std: 0.02
+  
+  # Bias initialization  
+  conv_bias: true
+  linear_bias: true
+
+# Optimization-related model settings
+optimization:
+  # Gradient clipping
+  gradient_clip_val: 1.0
+  
+  # EMA model (for evaluation)
+  ema:
+    enabled: true
+    decay: 0.9999
+    update_every: 1
+
+# Model compilation and efficiency
+compile:
+  enabled: false  # PyTorch 2.0 compilation
+  mode: "default"  # "default", "reduce-overhead", "max-autotune"
+  
+# Memory optimization
+memory:
+  # Activation checkpointing
+  gradient_checkpointing: false
+  checkpoint_layers: []  # which layers to checkpoint
+  
+  # Mixed precision
+  precision: "16-mixed"  # "32", "16-mixed", "bf16-mixed"

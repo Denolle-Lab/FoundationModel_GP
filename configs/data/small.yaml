@@ -1,0 +1,62 @@
+# @package data
+
+# Small-scale data configuration for testing and debugging
+
+# Inherit from default and override specific settings
+defaults:
+  - default
+
+# S3 Data source (same as default)
+s3:
+  bucket: scedc-pds
+  prefix: continuous_waveforms/
+  region: us-west-2
+
+# Reduced processing parameters for faster iteration
+processing:
+  target_sampling_rate: 50.0  # Lower sampling rate
+  window_length: 10.0  # Shorter windows
+  overlap: 0.0  # No overlap for speed
+
+# Minimal augmentation
+augmentation:
+  enabled: true
+  probability: 0.5
+  
+  time_shift:
+    enabled: true
+    max_shift: 0.05
+  
+  amplitude_scale:
+    enabled: false
+  
+  additive_noise:
+    enabled: false
+  
+  bandpass_filter:
+    enabled: false
+  
+  channel_dropout:
+    enabled: false
+
+# Limited metadata
+metadata:
+  enabled: false  # Disable for speed
+
+# Small dataset
+dataset:
+  max_files_per_station: 100  # Very limited
+  date_range:
+    start: "2023-01-01"
+    end: "2023-01-31"  # Just one month
+  
+  shard_size: 1000  # Smaller shards
+  buffer_size: 100
+  shuffle_buffer: 1000
+  
+  val_fraction: 0.2
+
+# Smaller batches  
+dataloader:
+  batch_size: 8
+  num_workers: 2

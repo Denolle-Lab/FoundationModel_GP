@@ -1,0 +1,74 @@
+# @package _global_
+
+# Production experiment configuration
+# Full-scale training with optimal settings
+
+defaults:
+  - /data: default
+  - /model: default
+  - /train: default
+  - _self_
+
+# Production settings
+name: gp2vec_production_v1
+debug: false
+seed: 42
+
+# Full dataset
+data:
+  dataset:
+    date_range:
+      start: "2010-01-01"
+      end: "2024-01-01"
+    max_files_per_station: 50000
+  
+  dataloader:
+    batch_size: 64
+    num_workers: 8
+
+# Large model
+model:
+  feature_encoder:
+    conv_layers:
+      - channels: 64
+        kernel_size: 10
+        stride: 5
+      - channels: 128
+        kernel_size: 8
+        stride: 4
+      - channels: 256
+        kernel_size: 4
+        stride: 2
+      - channels: 512
+        kernel_size: 4
+        stride: 2
+      - channels: 1024
+        kernel_size: 4
+        stride: 2
+  
+  context_encoder:
+    embed_dim: 1024
+    num_heads: 16
+    num_layers: 18
+
+# Extended training
+train:
+  max_epochs: 200
+  optimizer:
+    lr: 2e-4
+  
+  lr_scheduler:
+    warmup_steps: 20000
+  
+  trainer:
+    devices: "auto"
+    strategy: "ddp"
+    precision: "16-mixed"
+
+# Full monitoring
+wandb:
+  enabled: true
+  tags:
+    - production
+    - large-model
+    - full-dataset

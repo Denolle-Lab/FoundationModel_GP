@@ -1,0 +1,28 @@
+# @package _global_
+
+# Debug experiment configuration
+# Small model and dataset for rapid iteration
+
+defaults:
+  - /data: small
+  - /model: small  
+  - /train: debug
+  - _self_
+
+# Override global settings for debugging
+name: gp2vec_debug
+debug: true
+seed: 42
+
+# Use CPU for debugging if needed
+# train:
+#   trainer:
+#     accelerator: cpu
+#     devices: 1
+
+# Minimal logging for speed
+wandb:
+  enabled: false
+
+logging:
+  level: DEBUG

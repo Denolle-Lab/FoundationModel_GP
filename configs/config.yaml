@@ -1,0 +1,58 @@
+# @package _global_
+
+# Main configuration for GP2Vec training
+# This file orchestrates all other configs
+
+defaults:
+  - data: default
+  - model: default
+  - train: default
+  - _self_
+
+# Hydra configuration
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d_%H-%M-%S}
+    subdir: ${hydra:job.num}
+  job_logging:
+    formatters:
+      simple:
+        format: '[%(levelname)s] - %(message)s'
+
+# Global settings
+name: gp2vec_experiment
+seed: 42
+debug: false
+
+# Paths
+data_root: s3://scedc-pds/continuous_waveforms/
+output_dir: ./outputs
+cache_dir: ./cache
+
+# Logging and monitoring
+logging:
+  level: INFO
+  log_dir: ${output_dir}/logs
+
+wandb:
+  enabled: true
+  project: gp2vec
+  entity: null  # Set to your wandb entity
+  tags: 
+    - self-supervised
+    - seismic
+    - wav2vec2
+  group: ${name}
+  job_type: train
+  notes: "GP2Vec self-supervised learning on seismic data"
+
+# Hardware and performance
+num_workers: 4
+pin_memory: true
+persistent_workers: true
+
+# Reproducibility
+deterministic: false  # Set to true for full reproducibility (slower)
+benchmark: true  # Set to false if input sizes vary significantly

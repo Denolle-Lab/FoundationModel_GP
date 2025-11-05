@@ -1,0 +1,122 @@
+# @package data
+
+# Default data configuration for GP2Vec training
+
+# S3 Data source
+s3:
+  bucket: scedc-pds
+  prefix: continuous_waveforms/
+  region: us-west-2
+  endpoint_url: null  # Use null for AWS, set for other S3-compatible services
+  aws_access_key_id: null  # Use null for IAM roles/default credentials
+  aws_secret_access_key: null
+  use_ssl: true
+
+# Data processing parameters
+processing:
+  target_sampling_rate: 100.0  # Hz
+  window_length: 30.0  # seconds
+  overlap: 0.5  # fraction
+  min_trace_length: 10.0  # seconds - minimum trace length to keep
+  max_trace_length: 3600.0  # seconds - maximum trace length
+  
+  # Preprocessing
+  detrend: true
+  demean: true
+  taper_fraction: 0.05
+  normalize: true  # normalize to unit variance
+  
+  # Quality control  
+  max_gap_fraction: 0.1  # maximum fraction of gaps allowed
+  min_snr: 1.0  # minimum signal-to-noise ratio
+  clip_percentile: 99.9  # clip outliers above this percentile
+
+# Augmentation settings
+augmentation:
+  enabled: true
+  probability: 0.8  # probability of applying augmentation
+  
+  # Time domain augmentations
+  time_shift:
+    enabled: true
+    max_shift: 0.1  # fraction of window length
+  
+  amplitude_scale:
+    enabled: true
+    min_scale: 0.8
+    max_scale: 1.2
+  
+  additive_noise:
+    enabled: true
+    snr_db_range: [10, 40]  # SNR range for noise injection
+  
+  # Frequency domain augmentations
+  bandpass_filter:
+    enabled: true
+    num_filters: 3  # number of different filters to try
+    min_freq: 0.1
+    max_freq: 45.0
+  
+  # Channel-wise augmentations
+  channel_dropout:
+    enabled: true
+    max_channels_to_drop: 1
+  
+  channel_shuffle:
+    enabled: false
+
+# Metadata configuration
+metadata:
+  enabled: true
+  fdsn_client: IRIS  # FDSN client for station metadata
+  cache_metadata: true
+  
+  # Station selection criteria
+  station_filters:
+    networks: ["CI", "AZ", "US", "TA"]  # Preferred networks
+    min_latitude: 32.0
+    max_latitude: 42.0  
+    min_longitude: -125.0
+    max_longitude: -114.0
+    
+  # Metadata features to extract
+  features:
+    coordinates: true  # lat, lon, elevation
+    instrument: true  # sensor type, gain, etc.
+    site_conditions: false  # geological site info (if available)
+    temporal: true  # deployment dates, etc.
+
+# Dataset construction
+dataset:
+  # Manifest building
+  manifest_update_interval: 24  # hours between manifest updates
+  max_files_per_station: 10000  # limit files per station
+  date_range:
+    start: "2010-01-01"  # ISO format or null for all available
+    end: "2024-01-01"
+  
+  # WebDataset sharding
+  shard_size: 10000  # samples per shard
+  compression: "gz"  # compression for shards
+  
+  # Streaming settings
+  buffer_size: 1000  # number of samples to buffer
+  shuffle_buffer: 10000  # shuffle buffer size
+  
+  # Train/val split
+  val_fraction: 0.1
+  val_split_method: "temporal"  # "temporal" or "random" or "spatial"
+  val_split_date: "2023-01-01"  # for temporal split
+
+# DataLoader settings  
+dataloader:
+  batch_size: 32
+  num_workers: ${num_workers}
+  pin_memory: ${pin_memory}
+  persistent_workers: ${persistent_workers}
+  prefetch_factor: 2
+  drop_last: true  # for training
+  
+  # WebDataset specific
+  resampled: true  # use resampled dataset for infinite streaming
+  length: null  # dataset length override

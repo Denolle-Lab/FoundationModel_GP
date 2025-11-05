@@ -1,0 +1,210 @@
+# @package train
+
+# Default training configuration for GP2Vec
+
+# Training procedure
+max_epochs: 100
+max_steps: null  # Override max_epochs if set
+min_epochs: 1
+
+# Learning rate and optimization
+optimizer:
+  name: "adamw"  # adamw, adam, sgd
+  lr: 1e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.98]
+  eps: 1e-8
+
+# Learning rate scheduling
+lr_scheduler:
+  name: "cosine_with_warmup"  # cosine_with_warmup, cosine, linear_with_warmup, constant
+  warmup_steps: 10000
+  warmup_ratio: null  # Alternative to warmup_steps
+  max_lr: ${train.optimizer.lr}
+  min_lr: 1e-7
+  
+  # Cosine specific
+  cosine_restarts: false
+  restart_factor: 1.0
+
+# Gradient and training dynamics
+gradient_clip_val: ${model.optimization.gradient_clip_val}
+gradient_clip_algorithm: "norm"  # "norm" or "value"
+accumulate_grad_batches: 1
+
+# Validation
+val_check_interval: 1.0  # Check validation every epoch
+check_val_every_n_epoch: 1
+limit_val_batches: 1.0
+
+# Monitoring and logging
+log_every_n_steps: 50
+enable_progress_bar: true
+
+# Checkpointing
+checkpointing:
+  # Model checkpoints
+  save_top_k: 3
+  save_last: true
+  monitor: "val/loss"
+  mode: "min"
+  filename: "epoch_{epoch:02d}-val_loss_{val/loss:.4f}"
+  
+  # Checkpoint frequency
+  every_n_epochs: 1
+  every_n_train_steps: null
+  
+  # Save hyperparameters
+  save_hparams: true
+
+# Early stopping
+early_stopping:
+  enabled: false
+  monitor: "val/loss"
+  mode: "min"
+  patience: 10
+  min_delta: 0.001
+  strict: true
+
+# Hardware and distributed training
+trainer:
+  # Hardware
+  accelerator: "auto"  # "auto", "gpu", "cpu", "tpu"
+  devices: "auto"  # "auto", 1, [0,1], etc.
+  
+  # Precision
+  precision: ${model.memory.precision}
+  
+  # Distributed training
+  strategy: "auto"  # "auto", "ddp", "fsdp", "deepspeed"
+  
+  # Debugging
+  fast_dev_run: false  # Run single batch for debugging
+  overfit_batches: 0  # Overfit on N batches for debugging
+  limit_train_batches: 1.0  # Limit training data
+  
+  # Profiling
+  profiler: null  # null, "simple", "advanced", "pytorch"
+  
+  # Determinism
+  deterministic: ${deterministic}
+  benchmark: ${benchmark}
+
+# Callbacks
+callbacks:
+  # Learning rate monitoring
+  lr_monitor:
+    enabled: true
+    logging_interval: "step"
+    log_momentum: false
+  
+  # Model checkpoint (configured above)
+  model_checkpoint:
+    enabled: true
+  
+  # Early stopping (configured above)  
+  early_stopping:
+    enabled: ${train.early_stopping.enabled}
+  
+  # Rich progress bar
+  rich_progress_bar:
+    enabled: true
+    leave: false
+  
+  # Model summary
+  model_summary:
+    enabled: true
+    max_depth: 2
+  
+  # GPU stats (if using GPU)
+  gpu_stats:
+    enabled: true
+    memory_utilization: true
+    gpu_utilization: true
+    intra_step_time: true
+    inter_step_time: true
+  
+  # Custom callbacks
+  throughput_monitor:
+    enabled: true
+    window_size: 100
+
+# Logging configuration  
+loggers:
+  # Weights & Biases
+  wandb:
+    enabled: ${wandb.enabled}
+    name: ${name}
+    project: ${wandb.project}
+    entity: ${wandb.entity}
+    tags: ${wandb.tags}
+    group: ${wandb.group}
+    job_type: ${wandb.job_type}
+    notes: ${wandb.notes}
+    log_model: false  # Log model artifacts
+    log_code: false   # Log source code
+    
+  # TensorBoard
+  tensorboard:
+    enabled: false
+    log_graph: false
+    
+  # CSV Logger
+  csv_logger:
+    enabled: true
+    flush_logs_every_n_steps: 100
+
+# Validation and testing
+validation:
+  # Validation frequency
+  val_check_interval: ${train.val_check_interval}
+  
+  # Metrics to compute
+  metrics:
+    - "val/loss"
+    - "val/contrastive_accuracy" 
+    - "val/codebook_perplexity"
+    - "val/codebook_usage"
+  
+  # Additional validation
+  compute_downstream: false  # Run downstream eval during validation
+  downstream_frequency: 10  # Every N epochs
+
+# Testing
+test:
+  # Test after training
+  test_after_training: false
+  
+  # Test checkpoints
+  ckpt_path: null  # Path to checkpoint for testing
+
+# Resume training
+resume:
+  ckpt_path: null  # Path to checkpoint to resume from
+  strict_loading: true
+
+# Experiment tracking
+experiment:
+  # Experiment versioning  
+  version: null  # Auto-generated if null
+  
+  # Tags and metadata
+  tags: ${wandb.tags}
+  notes: "GP2Vec self-supervised pretraining"
+  
+  # Reproducibility
+  seed: ${seed}
+  
+# Advanced training options
+advanced:
+  # Gradient scaling (for mixed precision)
+  auto_scale_batch_size: false  # "power" or "binsearch" or false
+  auto_lr_find: false  # Automatic learning rate finding
+  
+  # Memory management
+  track_grad_norm: false  # Track gradient norms
+  detect_anomaly: false  # PyTorch anomaly detection
+  
+  # Model compilation
+  compile_model: ${model.compile.enabled}
+  compile_mode: ${model.compile.mode}

@@ -1,0 +1,49 @@
+# @package model
+
+# Small model configuration for testing and faster training
+
+# Inherit from default and override specific settings
+defaults:
+  - default
+
+# Smaller feature encoder
+feature_encoder:
+  conv_layers:
+    - channels: 32
+      kernel_size: 10
+      stride: 5
+    - channels: 64
+      kernel_size: 8
+      stride: 4
+    - channels: 128
+      kernel_size: 4
+      stride: 2
+    - channels: 256
+      kernel_size: 4
+      stride: 2
+
+# Smaller quantizer
+quantizer:
+  num_codebooks: 1
+  codebook_size: 64
+  codebook_dim: 256
+
+# Smaller transformer
+context_encoder:
+  embed_dim: 256
+  num_heads: 4
+  num_layers: 4
+  max_positions: 128
+
+# Simpler metadata encoder
+metadata_encoder:
+  enabled: false  # Disable for simplicity
+  embed_dim: 64
+  num_layers: 1
+
+# Simpler loss
+loss:
+  mask_prob: 0.15
+  mask_length: 5
+  min_masks: 1
+  num_negatives: 50

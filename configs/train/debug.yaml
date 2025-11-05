@@ -1,0 +1,43 @@
+# @package train
+
+# Debug training configuration for rapid iteration
+
+# Inherit from default and override specific settings
+defaults:
+  - default
+
+# Quick training
+max_epochs: 5
+max_steps: 1000
+
+# Higher learning rate for faster convergence (in debug mode)
+optimizer:
+  lr: 5e-4
+
+# Faster warmup
+lr_scheduler:
+  warmup_steps: 100
+
+# More frequent logging
+log_every_n_steps: 10
+
+# Checkpointing
+checkpointing:
+  save_top_k: 1
+  every_n_epochs: 2
+
+# Early stopping
+early_stopping:
+  enabled: true
+  patience: 3
+  min_delta: 0.01
+
+# Debug settings
+trainer:
+  fast_dev_run: false
+  limit_train_batches: 0.1  # Use only 10% of training data
+  limit_val_batches: 0.2   # Use only 20% of validation data
+  
+# Validation
+validation:
+  val_check_interval: 0.5  # Validate twice per epoch

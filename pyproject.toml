@@ -1,0 +1,150 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gp2vec"
+version = "0.1.0"
+description = "Wav2Vec2-style self-supervised model for seismic waveform representation learning"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.4.0",
+    "pytorch-lightning>=2.4.0",
+    "torchaudio>=2.4.0",
+    "obspy>=1.4.0",
+    "s3fs>=2023.1.0",
+    "boto3>=1.34.0",
+    "pandas>=2.0.0",
+    "pyarrow>=14.0.0",
+    "hydra-core>=1.3.0",
+    "webdataset>=0.2.86",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "pydantic>=2.0.0",
+    "tqdm>=4.65.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "jupyter>=1.0.0",
+    "ipywidgets>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.0.0",
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+]
+distributed = [
+    "deepspeed>=0.11.0",
+]
+logging = [
+    "wandb>=0.15.0",
+    "tensorboard>=2.14.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/gp2vec"
+Repository = "https://github.com/yourusername/gp2vec"
+Documentation = "https://gp2vec.readthedocs.io"
+"Bug Tracker" = "https://github.com/yourusername/gp2vec/issues"
+
+[project.scripts]
+gp2vec-train = "gp2vec.train.train:main"
+gp2vec-manifest = "gp2vec.scripts.make_manifest:main"
+gp2vec-metadata = "gp2vec.scripts.fetch_metadata:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gp2vec = ["py.typed"]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "obspy.*",
+    "s3fs.*",
+    "webdataset.*",
+    "lightning.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "gpu: marks tests that require GPU",
+]
+
+[tool.coverage.run]
+source = ["src/gp2vec"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
