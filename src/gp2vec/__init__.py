@@ -4,7 +4,7 @@ GP2Vec: Wav2Vec2-style self-supervised model for seismic waveform representation
 
 __version__ = "0.1.0"
 __author__ = "GP2Vec Team"
-__email__ = "contact@example.com"
+__email__ = "mdenolle@uw.edu"
 
 from gp2vec.data import decoder, metadata, s3_manifest
 from gp2vec.models import gp2vec

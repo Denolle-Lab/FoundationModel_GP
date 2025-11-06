@@ -1,0 +1,71 @@
+name: gp2vec
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python
+  - python=3.11
+
+  # PyTorch (GPU support)
+  - pytorch>=2.4.0
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.1  # Change to 11.8 or remove for CPU-only
+
+  # Core scientific packages
+  - numpy>=1.24.0
+  - scipy>=1.10.0
+  - pandas>=2.0.0
+  - matplotlib>=3.7.0
+  - seaborn>=0.12.0
+  
+  # Jupyter
+  - jupyter>=1.0.0
+  - ipywidgets>=8.0.0
+  - notebook
+
+  # Development tools
+  - black>=23.0.0
+  - ruff>=0.1.0
+  - mypy>=1.5.0
+  - pytest>=7.0.0
+  - pytest-cov>=4.0.0
+
+  # Install remaining dependencies via pip
+  - pip
+
+  - pip:
+    # Lightning and training
+    - pytorch-lightning>=2.4.0
+    
+    # Seismology
+    - obspy>=1.4.0
+    
+    # Cloud/S3 access
+    - s3fs>=2023.1.0
+    - boto3>=1.34.0
+    - pyarrow>=14.0.0
+    
+    # Configuration and utilities
+    - hydra-core>=1.3.0
+    - webdataset>=0.2.86
+    - pydantic>=2.0.0
+    - typer>=0.9.0
+    - rich>=13.0.0
+    - tqdm>=4.65.0
+    
+    # ML utilities
+    - scikit-learn>=1.3.0
+    
+    # Optional: Wav2Vec2 transfer learning
+    - transformers>=4.30.0
+    
+    # Optional: Experiment tracking
+    # - wandb>=0.15.0
+    # - tensorboard>=2.14.0
+    
+    # Optional: Distributed training
+    # - deepspeed>=0.11.0

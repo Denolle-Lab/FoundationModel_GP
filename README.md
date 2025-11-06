@@ -21,6 +21,7 @@ GP2Vec follows the Wav2Vec2 architecture with adaptations for seismic data:
 3. **Context Encoder**: Transformer that models temporal dependencies
 4. **Metadata Fusion**: Optional conditioning on station coordinates and instrument metadata
 5. **Contrastive Learning**: InfoNCE loss for self-supervised pretraining
+6. **🔄 Transfer Learning**: Initialize with pre-trained Wav2Vec2 weights for faster training
 
 ```
 Waveform (3, 3000) → CNN → Features (768, T) → VQ → Quantized → Transformer → Contextual Features
@@ -34,16 +35,76 @@ Waveform (3, 3000) → CNN → Features (768, T) → VQ → Quantized → Transf
 
 ### Prerequisites
 
-- Python ≥ 3.9
+- Python ≥ 3.11
 - PyTorch ≥ 2.4
 - CUDA (optional, for GPU training)
 
-### From Source
+### Installation Options
+
+#### Option 1: Conda Environment (Recommended)
+
+**Quick Setup with environment.yml:**
 
 ```bash
-git clone https://github.com/your-org/gp2vec.git
+# Clone repository
+git clone https://github.com/Denolle-Lab/gp2vec.git
 cd gp2vec
+
+# Create environment from file (includes all dependencies)
+conda env create -f environment.yml
+conda activate gp2vec
+
+# Install GP2Vec package in development mode
 pip install -e .
+```
+
+**Manual Setup:**
+
+```bash
+# Clone repository
+git clone https://github.com/Denolle-Lab/gp2vec.git
+cd gp2vec
+
+# Create conda environment with Python 3.11
+conda create -n gp2vec python=3.11 -y
+conda activate gp2vec
+
+# Install PyTorch (choose appropriate version for your system)
+# For CUDA 11.8:
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+
+# For CUDA 12.1:
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# For CPU only:
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+
+# Install GP2Vec package and dependencies
+pip install -e .
+
+# Optional: Install development dependencies
+pip install -e ".[dev]"
+
+# Optional: Install transformers for Wav2Vec2 weight transfer
+pip install transformers
+```
+
+#### Option 2: pip (Virtual Environment)
+
+```bash
+# Clone repository
+git clone https://github.com/Denolle-Lab/gp2vec.git
+cd gp2vec
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install package
+pip install -e .
+
+# Optional: Install development dependencies
+pip install -e ".[dev]"
 ```
 
 ### Dependencies
@@ -57,7 +118,38 @@ Core dependencies are automatically installed:
 - `webdataset` - Streaming datasets
 - `pandas`, `pyarrow` - Data manipulation
 
+
+
 ## 🚀 Quick Start
+
+### 0. Transfer Learning from Wav2Vec2 🔄
+
+GP2Vec can be initialized with pre-trained Wav2Vec2 weights for faster convergence:
+
+```bash
+# Extract Wav2Vec2 weights
+python scripts/extract_wav2vec_weights.py \
+    --model facebook/wav2vec2-base-960h \
+    --output weights/wav2vec2_base.pth \
+    --create-dir
+
+# Run full demonstration
+python examples/wav2vec_transfer_demo.py
+```
+
+```python
+# Use in Python code
+from src.gp2vec.models.gp2vec import create_gp2vec_model
+
+# Create model
+model = create_gp2vec_model("base", input_channels=3)
+
+# Load pre-trained weights (requires transformers library)
+stats = model.load_wav2vec_weights("weights/wav2vec2_base.pth")
+print(f"Transferred {stats['update_ratio']:.1%} of model parameters")
+
+# Model is now ready for seismic data training!
+```
 
 ### 1. Basic Training
 
@@ -417,17 +509,43 @@ GP2Vec is designed for cloud deployment with:
 If you use GP2Vec in your research, please cite:
 
 ```bibtex
-@software{gp2vec2024,
-  title={GP2Vec: Self-Supervised Learning for Seismic Waveform Representation},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/your-org/gp2vec}
+@software{gp2vec2025,
+  title={GP2Vec: Self-Supervised Learning for Geophysical Waveform Representation},
+  author={Marine Denolle},
+  year={2025},
+  url={https://github.com/Denolle-lab/gp2vec}
 }
 ```
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** (GPL-3.0).
+
+### License Rationale
+
+GP2Vec uses GPL-3.0 to ensure compatibility with key dependencies:
+- **SeisBench**: GPL-3.0 (seismic deep learning benchmarks)
+- **ObsPy**: LGPL-3.0 (seismological data processing)
+- **Wav2Vec2/Fairseq**: MIT (compatible with GPL-3.0)
+
+The GPL-3.0 license ensures that:
+- ✅ All modifications and derivative works remain open source
+- ✅ Full compatibility with seismological research software ecosystem
+- ✅ Community contributions are preserved for scientific progress
+- ✅ Users receive complete source code and modification rights
+
+See the [LICENSE](LICENSE) file for the complete terms.
+
+### Third-Party Licenses
+
+This project incorporates or builds upon:
+- **Wav2Vec2** (Meta AI/Facebook): MIT License
+- **ObsPy**: LGPL v3.0
+- **SeisBench**: GPL v3.0
+- **PyTorch**: BSD-style License
+- **PyTorch Lightning**: Apache 2.0
+
+All third-party licenses are compatible with GPL-3.0.
 
 ## 🆘 Support
 

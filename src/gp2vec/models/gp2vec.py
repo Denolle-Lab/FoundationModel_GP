@@ -11,6 +11,7 @@ This module implements the complete GP2Vec model that combines:
 
 import logging
 from typing import Dict, List, Optional, Tuple, Union
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -285,6 +286,52 @@ class GP2Vec(nn.Module):
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             nn.init.xavier_uniform_(module.weight)
+    
+    def load_wav2vec_weights(
+        self,
+        weights_path: Union[str, Path],
+        strict: bool = False,
+        verbose: bool = True
+    ) -> Dict[str, int]:
+        """
+        Load pre-trained Wav2Vec2 weights into GP2Vec model.
+        
+        Args:
+            weights_path: Path to extracted Wav2Vec2 weights
+            strict: Whether to require exact parameter matching
+            verbose: Whether to print loading progress
+            
+        Returns:
+            Dictionary with loading statistics
+        """
+        try:
+            from ..utils.wav2vec_transfer import load_wav2vec_weights, initialize_gp2vec_from_wav2vec
+        except ImportError:
+            logger.error("Could not import wav2vec_transfer utilities")
+            raise ImportError("wav2vec_transfer module not available")
+        
+        if verbose:
+            logger.info(f"🔄 Loading Wav2Vec2 weights from {weights_path}")
+        
+        # Load weights
+        wav2vec_weights = load_wav2vec_weights(str(weights_path))
+        
+        # Initialize model with weights
+        updated_params = initialize_gp2vec_from_wav2vec(
+            self, wav2vec_weights, strict=strict
+        )
+        
+        stats = {
+            'total_params': len(list(self.parameters())),
+            'updated_params': len(updated_params),
+            'update_ratio': len(updated_params) / len(list(self.parameters()))
+        }
+        
+        if verbose:
+            logger.info(f"✅ Loaded {len(updated_params)} parameters from Wav2Vec2")
+            logger.info(f"   - Update ratio: {stats['update_ratio']:.1%}")
+        
+        return stats
     
     def forward(
         self,
