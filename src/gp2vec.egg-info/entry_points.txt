@@ -1,0 +1,4 @@
+[console_scripts]
+gp2vec-manifest = gp2vec.scripts.make_manifest:main
+gp2vec-metadata = gp2vec.scripts.fetch_metadata:main
+gp2vec-train = gp2vec.train.train:main

@@ -56,6 +56,9 @@ conda activate gp2vec
 
 # Install GP2Vec package in development mode
 pip install -e .
+
+# Register as Jupyter kernel (for notebook usage)
+python -m ipykernel install --user --name=gp2vec --display-name="Python (gp2vec)"
 ```
 
 **Manual Setup:**
@@ -81,6 +84,9 @@ conda install pytorch torchvision torchaudio cpuonly -c pytorch
 
 # Install GP2Vec package and dependencies
 pip install -e .
+
+# Register as Jupyter kernel (for notebook usage)
+python -m ipykernel install --user --name=gp2vec --display-name="Python (gp2vec)"
 
 # Optional: Install development dependencies
 pip install -e ".[dev]"
@@ -229,7 +235,42 @@ with torch.no_grad():
 - **Custom S3 buckets**: Any S3-compatible storage with miniSEED files
 - **Local files**: Direct file system access for smaller datasets
 
-### Data Preparation
+### Quick Start: Loading Real Data
+
+**Load real seismic data from SCEDC S3 bucket:**
+
+```python
+from torch.utils.data import DataLoader
+from gp2vec.data.s3_manifest import SCEDCSeismicDataset
+
+# Create dataset - direct S3 access (no credentials needed for public bucket)
+dataset = SCEDCSeismicDataset(
+    start_date="2023-01-01",
+    num_days=7,
+    networks=["CI"],  # Southern California Seismic Network
+    stations=["ADE", "ADO", "BAR"],  # Select stations
+    channels=["BHE", "BHN", "BHZ"],  # 3-component broadband
+    sample_length_sec=30.0,
+    sample_rate=100.0,
+    samples_per_day=10
+)
+
+# Create DataLoader
+dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+
+# Iterate through batches
+for batch in dataloader:
+    waveforms = batch['waveform']  # (batch_size, 3, 3000) - 3 components, 30s @ 100Hz
+    metadata = batch['metadata']   # (batch_size, 4) - lat, lon, elev, timestamp
+    station_ids = batch['station_id']
+    
+    # Your training code here...
+    break
+```
+
+### Data Preparation (Advanced)
+
+For large-scale training with WebDataset shards:
 
 1. **Build Manifest**:
 ```bash
@@ -675,6 +716,32 @@ meta = {
 5. **Distributed training:** Train via PyTorch Lightning with FSDP or DeepSpeed, mixed precision, EMA, and periodic checkpoints written back to S3.
 
 ## 6. Minimal Code Blocks
+
+**Quick Start: Load SCEDC Real Data (No Setup Required)**
+
+```python
+# Simple script to load real seismic data from SCEDC S3
+from torch.utils.data import DataLoader
+from gp2vec.data.s3_manifest import SCEDCSeismicDataset
+
+# Create dataset - works out of the box with anonymous S3 access
+dataset = SCEDCSeismicDataset(
+    start_date="2023-01-01",
+    num_days=3,
+    networks=["CI"],
+    stations=["ADE", "ADO"],
+    channels=["BHE", "BHN", "BHZ"],
+    sample_length_sec=30.0,
+    sample_rate=100.0
+)
+
+# Load data
+loader = DataLoader(dataset, batch_size=16, num_workers=2)
+for batch in loader:
+    waveforms = batch['waveform']  # (16, 3, 3000)
+    print(f"Loaded {waveforms.shape} from {batch['station_id']}")
+    break
+```
 
 **List and stream from EarthScope S3:**
 
